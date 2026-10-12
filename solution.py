@@ -7,7 +7,6 @@ def cotar():
 
     for i in range(365):
         dia = hoje - datetime.timedelta(days=i)
-
         data_formatada = dia.strftime("%m-%d-%Y")
 
         url = (
@@ -16,9 +15,9 @@ def cotar():
             "&$top=100&$format=json"
         )
 
-        resposta = requests.get(url)
-
-        if resposta.status_code == 200:
+        try:
+            resposta = requests.get(url, timeout=10)
+            resposta.raise_for_status()
             dados = resposta.json()["value"]
 
             if dados:
@@ -30,5 +29,10 @@ def cotar():
                     )
             else:
                 print(dia, "Sem cotação disponível")
-        else:
-            print(dia, "Erro na consulta:", resposta.status_code)
+
+        except requests.RequestException as erro:
+            print(dia, "Erro na consulta:", erro)
+
+
+if __name__ == "__main__":
+    cotar()
