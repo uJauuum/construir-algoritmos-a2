@@ -21,30 +21,26 @@ def cotar():
             "$format": "json"
         }
 
-        try:
-            resposta = requests.get(
-                url_base,
-                params=parametros,
-                timeout=15
-            )
-            resposta.raise_for_status()
-            dados = resposta.json()["value"]
+        resposta = requests.get(
+            url_base,
+            params=parametros,
+            timeout=15
+        )
+        resposta.raise_for_status()
+        dados = resposta.json()["value"]
 
-            if dados:
-                ultima_cotacao = dados[0]["cotacaoCompra"]
+        if dados:
+            ultima_cotacao = dados[0]["cotacaoCompra"]
 
-            if ultima_cotacao is not None:
-                cotacoes.append(ultima_cotacao)
+        if ultima_cotacao is not None:
+            cotacoes.append(ultima_cotacao)
 
-        except requests.RequestException as erro:
-            print(f"Erro ao consultar {dia}: {erro}")
-            return []
+        print(f"Consultando dia {i + 1}/365", flush=True)
 
     return cotacoes
 
 
 if __name__ == "__main__":
-    print("Consultando cotações do dólar...")
     resultado = cotar()
     print(resultado)
-    print("Quantidade de valores:", len(resultado))
+    print("Total de valores:", len(resultado))
