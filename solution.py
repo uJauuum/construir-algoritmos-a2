@@ -4,35 +4,47 @@ import requests
 
 def cotar():
     hoje = datetime.date.today()
+    cotacoes = []
+    ultima_cotacao = None
+
+    url_base = (
+        "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/"
+        "CotacaoDolarDia(dataCotacao=@dataCotacao)"
+    )
 
     for i in range(365):
         dia = hoje - datetime.timedelta(days=i)
         data_formatada = dia.strftime("%m-%d-%Y")
 
-        url = (
-            "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/"
-            f"CotacaoDolarDia(dataCotacao=@dataCotacao)?@dataCotacao='{data_formatada}'"
-            "&$top=100&$format=json"
-        )
+        parametros = {
+            "@dataCotacao": f"'{data_formatada}'",
+            "$format": "json"
+        }
 
         try:
-            resposta = requests.get(url, timeout=10)
+            resposta = requests.get(
+                url_base,
+                params=parametros,
+                timeout=15
+            )
             resposta.raise_for_status()
             dados = resposta.json()["value"]
 
             if dados:
-                for cotacao in dados:
-                    print(
-                        dia,
-                        "Compra:",
-                        cotacao["cotacaoCompra"]
-                    )
-            else:
-                print(dia, "Sem cotação disponível")
+                ultima_cotacao = dados[0]["cotacaoCompra"]
+
+            if ultima_cotacao is not None:
+                cotacoes.append(ultima_cotacao)
 
         except requests.RequestException as erro:
-            print(dia, "Erro na consulta:", erro)
+            print(f"Erro ao consultar {dia}: {erro}")
+            return []
+
+    return cotacoes
 
 
 if __name__ == "__main__":
-    cotar()
+    print("Consultando cotações do dólar...")
+    resultado = cotar()
+    print(resultado)
+    print("Quantidade de valores:", len(resultado))
